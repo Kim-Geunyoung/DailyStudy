@@ -1,0 +1,8 @@
+순서
+1. UltraLytics git에서 복사하기
+2. yolov3 폴더 이동 및 requirements.txt 내부 패키지 설치
+3. 예제 이미지 다운로드
+4. coco dataset으로 pretrained된 weights 다운로드
+    -> 폴더 만들기 + pretrained된 weights 다운로드(github에서 주소 복사해오기)
+5. detect.py를 호출->python으로 직접 호출하여 수행(명령어 도움말:python detect.py -h)
+6. Detect 이미지 확인하기
