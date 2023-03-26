@@ -2,4 +2,3 @@ Convolutional Neural Network
 -> input -> Convolution -> Non-linearity -> spatial pooling -> feature maps
 
 인풋, filter, feature maps, pooling, padding 등의 개념을 정리하고 요약하기
-aasasd
