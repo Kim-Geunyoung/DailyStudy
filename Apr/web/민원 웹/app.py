@@ -16,6 +16,7 @@ JungGu_model = joblib.load('JungGu_model.joblib')
 SeoGu_model = joblib.load('SeoGu_model.joblib')
 Suseonggu_model = joblib.load('Suseonggu_model.joblib')
 DongGu_model = joblib.load('DongGu_model.joblib')
+
 wv_model = joblib.load('new_wv_model.joblib')
 
 # 라우트
@@ -52,7 +53,6 @@ def predict():
         # subscription이 존재하지 않는 경우 기본값인 BukGu로 설정
         model = BukGu_model
         
-        
     # 형태소 분석 후 토큰화
     kiwi = Kiwi()
     sentence = kiwi.tokenize(sentence)
@@ -63,9 +63,6 @@ def predict():
     
     # 리스트를 numpy 배열로 변환
     sentence_token = np.array(sentence_token).tolist()
-    
-    # 벡터화 > 워드 투 벡터 모델을 가지고 와서 주석처리 해둠
-    # wv_model = Word2Vec(sentences=[sentence_token], vector_size=1000, window=5, min_count=5, workers=4, sg=1)
     
     def get_sent_embedding(model, embedding_size, tokenized_words):
         feature_vec = np.zeros((embedding_size,), dtype="float32")
@@ -99,8 +96,21 @@ def predict():
     # 모델로 예측하기
     category = model.predict(sentence_token_vc)[0]
     
-    # 결과 리턴하기
-    return render_template('result.html', category=category, text=text)
+    # 예측 확률
+    pred = model.predict_proba(sentence_token_vc)[0].max()
+    
+    # 결과 result.html 페이지로 보내기
+    return render_template('result.html', category=category, text=text, pred=pred)
+
+
+@app.route('/predict/manager', methods=['GET', 'POST'])
+def manager():
+    if request.method == 'POST':
+        text = request.form['text']
+        category = request.form['category']
+        pred = request.form['pred']
+        return render_template('manager.html', text=text, category=category, pred=pred)
+
 
 # 앱 실행
 if __name__ == '__main__':
