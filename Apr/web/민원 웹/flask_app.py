@@ -98,19 +98,15 @@ def predict():
     
     # 예측 확률
     pred = model.predict_proba(sentence_token_vc)[0].max()
+    # pred = model.predict_proba(sentence_token_vc)[0]
     
     # 결과 result.html 페이지로 보내기
-    return render_template('result.html', category=category, text=text, pred=pred)
+    return render_template('result.html', category=category, text=text, pred=pred, subscription=subscription)
 
 
-@app.route('/predict/manager', methods=['GET', 'POST'])
+@app.route('/predict/manager')
 def manager():
-    if request.method == 'POST':
-        text = request.form['text']
-        category = request.form['category']
-        pred = request.form['pred']
-        return render_template('manager.html', text=text, category=category, pred=pred)
-
+    return render_template('manager.html')
 
 # 앱 실행
 if __name__ == '__main__':
