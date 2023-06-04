@@ -2,6 +2,8 @@
 -
 - DB연결(sqlite, mysql)
 - mvc 모델 사용하기
+- 파이프라인 만들어서 AI모델 연결하기
 - 라우터
 - html, css
 - aws 연결하기
+
