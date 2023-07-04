@@ -3,16 +3,20 @@ import pandas as pd
 import numpy as np
 import joblib
 from gensim.models import Word2Vec
+import requests
+from datetime import datetime, timedelta
+import pytz
 
 app = Flask(__name__)
 
 # 모델 로드
 guide_model = joblib.load('guide_model_rf.pkl')
 guide_wv_model = joblib.load('guide_wv_model.pkl')
-recommend_model = joblib.load('recommend_model.pkl')
+recommend_model = joblib.load('recommend_model_rf.pkl')
 recommend_wv_model = joblib.load('recommend_wv_model.pkl')
 
-jfish_model = joblib.load('jfish_model.pkl')
+jfish_model = joblib.load('jfish_et1_model.pkl')
+# jfish_model = joblib.load('jfish_xgb1_model.pkl')
 
 model = None
 wv_model = None
@@ -291,24 +295,14 @@ def guide_list(text):
         return '1) 메인 페이지에서 시작하기 버튼 클릭 > 지도에서 조회를 뭔하는 지역구 선택 > 조회하고 싶은 해수욕장 카드를 선택하여 조회 2) 메뉴바에서 해수욕장 신호등 버튼 클릭 > 지도에서 조회를 뭔하는 지역구 선택 > 조회하고 싶은 해수욕장 카드를 선택하여 조회'
 
 @app.route('/api/request/jfish', methods=['POST'])
-def jfish():
-    global wv_model, model
-    # 요청 받기
+def jfish_pip():
+
+    
     request_data = request.get_json()
     obs_code = request_data.get('obs_code')
     
     model = jfish_model
-    answer = jfish_pip(obs_code)
     
-    # 요청 처리 후 응답 반환
-    response = {
-        'message': f'{answer}'
-    }
-    return jsonify(response)
-    
-    
-def jfish_pip(obs_code):
-    import requests
     # 인증키
     service_key = '4NK/rglt3c7VdkaTYoRPug=='
 
@@ -319,34 +313,52 @@ def jfish_pip(obs_code):
     data = response.json()
 
     # 필요 항목 추출
+    # ['air_pressure', 'air_temper', 'water_temper', 'wave', 'tide_level', 'salinity']
     item_list = data['result']['data']
 
-    wind_speed = item_list['wind_speed']
+    # wind_speed = item_list['wind_speed']
     air_pressure = item_list['air_pres']
-    temper = item_list['air_temp']
+    air_temper = item_list['air_temp']
     water_temper = item_list['water_temp']
     wave = item_list['wave_height']
-    
-    data = [[wind_speed, air_pressure, temper, water_temper, wave]]
-    col = ['wind_speed', 'air_pressure', 'temper', 'water_temper', 'wave']
+    salinity = item_list['Salinity']
+
+    # 조위 데이터(tide_level) api 호출 시작
+    # 현재 시간을 UTC로 설정
+    current_datetime = datetime.now(pytz.utc)
+
+    # 한국 시간대로 변환
+    korean_tz = pytz.timezone('Asia/Seoul')
+    current_datetime = current_datetime.astimezone(korean_tz)
+    search_date = current_datetime.strftime("%Y%m%d")
+
+    code = 'DT_0005'
+    url = f"http://www.khoa.go.kr/api/oceangrid/tideCurPre/search.do?ServiceKey={service_key}&ObsCode={code}&Date={search_date}&ResultType=json"
+    response = requests.get(url)
+    data = response.json()
+    item_list = data['result']['data']
+    tide_level = item_list[-1]['real_value']
+    # 조위 데이터(tide_level) api 호출 끝
+
+    data = [[air_pressure, air_temper, water_temper, wave, tide_level, salinity]]
+    col = ['air_pressure', 'air_temper', 'water_temper', 'wave', 'tide_level', 'salinity']
     df = pd.DataFrame(data, columns=col)
 
-    # LGBM 사용하기 위해서 타입 변경
-    df['wind_speed'] = df['wind_speed'].astype(float)
+    # 타입 변경
     df['air_pressure'] = df['air_pressure'].astype(float)
-    df['temper'] = df['temper'].astype(float)
+    df['air_temper'] = df['air_temper'].astype(float)
     df['water_temper'] = df['water_temper'].astype(float)
     df['wave'] = df['wave'].astype(float)
-    
+    df['tide_level'] = df['tide_level'].astype(float)
+    df['salinity'] = df['salinity'].astype(float)
+
     pred = model.predict(df)
-    answer = ''
-    if pred == 0:
-        answer = '초록'
-    elif pred == 1:
-        answer = '주황'
-    elif pred == 2:
-        answer = '빨강'
-    return answer
+    answer = pred[0].astype(float)
+    # 요청 처리 후 응답 반환
+    response = {
+        'message' : f'{answer}'
+    }
+    return jsonify(response)
 
 # 앱 실행
 if __name__ == '__main__':
