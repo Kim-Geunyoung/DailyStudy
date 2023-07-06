@@ -5,6 +5,7 @@ import joblib
 from gensim.models import Word2Vec
 import requests
 from datetime import datetime, timedelta
+from hanspell import spell_checker
 import pytz
 
 app = Flask(__name__)
@@ -16,6 +17,7 @@ recommend_model = joblib.load('recommend_model_rf.pkl')
 recommend_wv_model = joblib.load('recommend_wv_model.pkl')
 
 jfish_model = joblib.load('jfish_et1_model.pkl')
+# jfish_model = joblib.load('jfish_xgb1_model.pkl')
 
 model = None
 wv_model = None
@@ -35,6 +37,11 @@ def process_request():
     elif category == 'recommend':
         model = recommend_model
         wv_model = recommend_wv_model
+        
+    # 맞춤법 검사
+    user_request = spell_checker.check(user_request)
+    user_request = user_request.checked
+
         
     # 요청 처리하기
     category_result = pipeline(user_request)
@@ -203,14 +210,14 @@ def rip_api(text):
 
     return f'이안류 수치가 {rip_list[min_index]}로 가장 낮은 {obs_ko[min_index]}을 추천드립니다.'
 
-# 해수욕 지수
+# 해수욕 지수 -> 예외처리 코드 추가하기
 def sea_status(text):
     from datetime import datetime, timedelta
     import pytz
     import requests
 
     # 인증키
-    service_key = '6uh4JHGOKxwP2AweAEIQOA=='
+    service_key = '4NK/rglt3c7VdkaTYoRPug=='
 
     # 가져올 해수욕장 코드 임랑, 송정, 해운대
     # obs_code = ['BCH002', 'BCH013', 'BCH012', 'BCH010', 'BCH008', 'BCH172', 'BCH001']
