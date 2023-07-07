@@ -17,7 +17,6 @@ recommend_model = joblib.load('recommend_model_rf.pkl')
 recommend_wv_model = joblib.load('recommend_wv_model.pkl')
 
 jfish_model = joblib.load('jfish_et1_model.pkl')
-# jfish_model = joblib.load('jfish_xgb1_model.pkl')
 
 model = None
 wv_model = None
@@ -219,10 +218,6 @@ def sea_status(text):
     # 인증키
     service_key = '4NK/rglt3c7VdkaTYoRPug=='
 
-    # 가져올 해수욕장 코드 임랑, 송정, 해운대
-    # obs_code = ['BCH002', 'BCH013', 'BCH012', 'BCH010', 'BCH008', 'BCH172', 'BCH001']
-    # obs_ko = ['광안리 해수욕장', '다대포 해수욕장', '송도 해수욕장', '송정 해수욕장', '일광 해수욕장', '임랑 해수욕장', '해운대 해수욕장']
-    
     obs_code = ['BCH002', 'BCH013', 'BCH012', 'BCH010', 'BCH008', 'BCH001']
     obs_ko = ['광안리 해수욕장', '다대포 해수욕장', '송도 해수욕장', '송정 해수욕장', '일광 해수욕장', '해운대 해수욕장']
 
