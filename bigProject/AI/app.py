@@ -49,7 +49,7 @@ def process_request():
     category_list = {
     'baby': wave_api,
     'young': wave_api,
-    'mid': sea_status,
+    'mid': rip_api,
     'old' : sea_status,
     'solo' : rip_api,
     'login' : guide_list,
